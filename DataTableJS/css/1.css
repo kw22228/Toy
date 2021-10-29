@@ -61,7 +61,7 @@ table#dataTable tr{
 	border: 1px solid #e3e6f0;
 }
 
-#paging .leftContent{
+/* #paging .leftContent{
 	float:left;
 }
 #paging .rightContent{
@@ -74,4 +74,4 @@ table#dataTable tr{
 #paging .rightContent a.action{
 	color: red;
 	font-weight: bold;
-}
+} */
