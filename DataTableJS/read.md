@@ -14,3 +14,5 @@ $(document).ready(function(){
 		});
 	});
 ```
+
+10.30 테이블 폼 셋 + 데이터 
