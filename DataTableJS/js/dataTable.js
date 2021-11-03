@@ -70,8 +70,13 @@ const DataTable = {
 		//this.configuaration.datas(tBodyChildrens);
 		
 		this.updateTable();
+		this.eventRowNumber();
 
 		return this;
+	},
+
+	eventRowNumber: function() {
+		$('#'+this.configuaration.rowSelectedId()).change(e => this.changeRowNumber(e.target.value));
 	},
     updateTable: function () {
 		this.makeTable();
