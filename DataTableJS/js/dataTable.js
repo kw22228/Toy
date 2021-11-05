@@ -11,10 +11,11 @@ const configuration = {
 		// 내부변수 초기화
 		tableWrapperName: "default-tables",
 		rowSelectedId: "default-rowSelectedId",
+		paginateId: "default-paginateId",
 		rowNumber: 10,
 		datas: [],
 	},
-
+	pagenation: null,
     init: function (options) {
 		mapper(this.keyList, options);
 
@@ -42,6 +43,13 @@ const configuration = {
 		}
 		return this.privateVal.rowNumber;
 	},
+	paginateId: function (newValue) {
+		
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.paginateId = newValue;
+		}
+		return this.privateVal.paginateId;
+	},
     datas: function(newValue) {
 		if (!isUndefined(newValue)) { // new numRowCount validation 추가
 			this.privateVal.datas = newValue;
@@ -52,6 +60,54 @@ const configuration = {
 		}
 		
 		return this.privateVal.datas;
+	},
+}
+const Pagenation = {
+	privateVal: {
+		// 내부변수 초기화
+		paginateId: "",
+		itemCount: 0,
+		currentPage: 1,
+		rowNumber: 10,
+	},
+
+	init: function (paginateId, rowNumber) {
+		this.paginateId(paginateId);
+		this.rowNumber(rowNumber);
+		
+		return this;
+	},
+
+	paginateId: function(newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.paginateId = newValue;
+		}
+		return this.privateVal.paginateId;
+	},
+
+	itemCount: function(newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.itemCount = newValue;
+		}
+		return this.privateVal.itemCount;
+	},
+
+	currentPage: function(newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.currentPage = newValue;
+		}
+		return this.privateVal.currentPage;
+	},
+
+	rowNumber: function(newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.rowNumber = newValue;
+		}
+		return this.privateVal.rowNumber;
+	},
+
+	endPage: function() {
+		return Math.ceil(this.privateVal.itemCount / this.privateVal.rowNumber);
 	},
 }
 
