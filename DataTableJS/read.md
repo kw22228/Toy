@@ -10,6 +10,7 @@ $(document).ready(function(){
 		var dt = DataTable.init({
 			tableWrapperName: "dataTable",
 			rowSelectedId: "selectEl",
+			paginateId: "paging",
 			rowNumber: 10
 		});
 	});
