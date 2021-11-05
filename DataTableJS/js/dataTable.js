@@ -78,6 +78,7 @@ const DataTable = {
 	eventRowNumber: function() {
 		$('#'+this.configuaration.rowSelectedId()).change(e => this.changeRowNumber(e.target.value));
 	},
+	
     updateTable: function () {
 		this.makeTable();
 		if(typeof this.configuaration.pagenation.paginateId() !== 'undefined') this.makePaging();
@@ -105,6 +106,30 @@ const DataTable = {
 			tbodys.appendChild(row);
 		}
 		
+	},
+	makePaging: function () {
+		let pagnation = this.doc.getElementById(this.configuaration.pagenation.paginateId());
+		pagnation.innerHTML = '';
+		
+		let leftContent_text  = "Showing " + (((this.configuaration.pagenation.currentPage() - 1) * this.configuaration.pagenation.rowNumber()) + 1) + " to ";
+			leftContent_text += (this.configuaration.pagenation.currentPage() === this.configuaration.pagenation.endPage()) ? (this.configuaration.datas().length) : (this.configuaration.pagenation.rowNumber() * this.configuaration.pagenation.currentPage());
+			leftContent_text += " of " + this.configuaration.datas().length + " entries";
+		let leftContent = this.doc.createElement('span');
+		leftContent.className = "leftContent";
+		leftContent.appendChild(this.doc.createTextNode(leftContent_text));
+		
+		let rightContent = this.doc.createElement('span');
+		rightContent.className = "rightContent";
+		for(var i = 0; i < this.configuaration.pagenation.endPage(); i++){
+			var a = this.doc.createElement('a');
+			a.href = "javascript:DataTable.changeCurrentPage(" + (i+1) + ")";
+			a.className = (this.configuaration.pagenation.currentPage() == (i+1)) ? 'action' : '';
+			a.appendChild(this.doc.createTextNode( (i+1) ));
+			rightContent.appendChild(a);
+		}
+		
+		pagnation.appendChild(leftContent);
+		pagnation.appendChild(rightContent);
 	},
     setData: function () {
 		let wrapper = this.doc.getElementById(this.configuaration.tableWrapperName());
