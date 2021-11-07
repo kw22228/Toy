@@ -11,8 +11,14 @@ $(document).ready(function(){
 			tableWrapperName: "dataTable",
 			rowSelectedId: "selectEl",
 			paginateId: "paging",
+			searchId: "searchEl",
 			rowNumber: 10
 		});
 	});
 ```
 
+### 기능
+- 데이터 페이징
+- 데이터 서칭
+- 데이터 갯수설정
+- 데이터 소팅
