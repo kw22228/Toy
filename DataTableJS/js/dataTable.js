@@ -1,29 +1,38 @@
 const configuration = {
-    keyList: [
+	keyList: [
 		'tableWrapperName',
 		'rowSelectedId',
 		'paginateId',
+		'searchId',
 		'rowNumber',
+		'sortFlag',
 		'datas'
 		// etc ....
 	],
-    privateVal: {
+
+	privateVal: {
 		// 내부변수 초기화
 		tableWrapperName: "default-tables",
 		rowSelectedId: "default-rowSelectedId",
 		paginateId: "default-paginateId",
+		searchId: "default-searchId",
 		rowNumber: 10,
 		datas: [],
+		originData: [],
+		sortFlag: false // true: asc, false: desc
 	},
+
 	pagenation: null,
-    init: function (options) {
+
+	init: function (options) {
 		mapper(this.keyList, options);
 
 		this.pagenation = Pagenation.init(this.paginateId(),this.rowNumber());
 		
 		return this;
 	},
-    tableWrapperName: function (newValue) {
+
+	tableWrapperName: function (newValue) {
 		if (!isUndefined(newValue)) { // new numRowCount validation 추가
 			this.privateVal.tableWrapperName = newValue;
 		}
@@ -36,13 +45,7 @@ const configuration = {
 		}
 		return this.privateVal.rowSelectedId;
 	},
-    rowNumber: function (newValue) {
-		
-		if (!isUndefined(newValue)) { // new numRowCount validation 추가
-			this.privateVal.rowNumber = newValue;
-		}
-		return this.privateVal.rowNumber;
-	},
+
 	paginateId: function (newValue) {
 		
 		if (!isUndefined(newValue)) { // new numRowCount validation 추가
@@ -50,7 +53,31 @@ const configuration = {
 		}
 		return this.privateVal.paginateId;
 	},
-    datas: function(newValue) {
+	
+	searchId: function (newValue) {
+		
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.searchId = newValue;
+		}
+		return this.privateVal.searchId;
+	},
+	
+	rowNumber: function (newValue) {
+		
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.rowNumber = newValue;
+		}
+		return this.privateVal.rowNumber;
+	},
+
+	sortFlag: function (newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.sortFlag = newValue;
+		}
+		return this.privateVal.sortFlag;
+	},
+
+	datas: function(newValue) {
 		if (!isUndefined(newValue)) { // new numRowCount validation 추가
 			this.privateVal.datas = newValue;
 		}
@@ -61,7 +88,16 @@ const configuration = {
 		
 		return this.privateVal.datas;
 	},
+	
+	originData: function(newValue) {
+		if (!isUndefined(newValue)) { // new numRowCount validation 추가
+			this.privateVal.originData = newValue;
+		}
+		
+		return this.privateVal.originData;
+	},
 }
+
 const Pagenation = {
 	privateVal: {
 		// 내부변수 초기화
@@ -111,11 +147,15 @@ const Pagenation = {
 	},
 }
 
-const DataTable = {
-    doc: null,
-	configuaration: null,
 
-    init: function (options) {
+
+const DataTable = {
+	doc: null,
+	configuaration: null,
+	
+
+	//init: function (options, datas) {
+	init: function (options) {
 		this.doc = document;
 		this.configuaration = configuration.init(options);
 		
@@ -127,20 +167,73 @@ const DataTable = {
 		
 		this.updateTable();
 		this.eventRowNumber();
-
+		
 		return this;
 	},
-
+	
 	eventRowNumber: function() {
+		//row change
 		$('#'+this.configuaration.rowSelectedId()).change(e => this.changeRowNumber(e.target.value));
+		
+		//search
+		$('#'+this.configuaration.searchId()+" input").keyup(e => {
+			let sval = e.target.value;
+			if(this.configuaration.originData().length < 1) this.configuaration.originData(this.configuaration.datas());
+			
+			this.configuaration.datas( filters(this.configuaration.originData(),sval) );
+			this.updateTable();
+		});
+		
+		const filters = (array, val) => {
+			return array.filter(e => {
+				let element = [].slice.call(e.children);
+				
+				return element.filter(e => {
+					return e.innerText.toUpperCase().includes(val.toUpperCase());
+				}).length > 0;
+			})
+		}
+		
+		// sort setting
+		$('#'+this.configuaration.tableWrapperName() + ' thead tr th').click(e => {
+			let cellIndex = e.currentTarget.cellIndex;
+			
+			sorts(cellIndex, this.configuaration.sortFlag());
+			this.updateTable();
+		});
+
+		const sorts = (index, isAsc) => {
+			this.configuaration.sortFlag(!isAsc);
+			this.configuaration.datas().sort((f, s) => {
+				let fv = f.children[index].innerText;
+				let sv = s.children[index].innerText;
+				if (fv > sv) return isAsc ? 1 : -1;
+				if (fv < sv) return isAsc ? -1 : 1;
+				return 0;
+			});
+		}
+		// sort setting
+
 	},
 	
-    updateTable: function () {
+	changeRowNumber: function(newValue) {
+		this.configuaration.pagenation.rowNumber(newValue);
+		this.updateTable();
+	},
+	
+	changeCurrentPage: function(newValue){
+		this.configuaration.pagenation.currentPage(newValue);
+		this.updateTable();
+		
+	},
+	
+	updateTable: function () {
 		this.makeTable();
 		if(typeof this.configuaration.pagenation.paginateId() !== 'undefined') this.makePaging();
 		this.setData();
 	},
-    makeTable: function () {
+	
+	makeTable: function () {
 		let wrapper = this.doc.getElementById(this.configuaration.tableWrapperName());
 		let tbodys = wrapper.getElementsByTagName("tbody")[0];
 		let originColumnCount = wrapper.getElementsByTagName("thead")[0].getElementsByTagName('tr')[0].children.length;
@@ -163,6 +256,7 @@ const DataTable = {
 		}
 		
 	},
+	
 	makePaging: function () {
 		let pagnation = this.doc.getElementById(this.configuaration.pagenation.paginateId());
 		pagnation.innerHTML = '';
@@ -187,7 +281,8 @@ const DataTable = {
 		pagnation.appendChild(leftContent);
 		pagnation.appendChild(rightContent);
 	},
-    setData: function () {
+
+	setData: function () {
 		let wrapper = this.doc.getElementById(this.configuaration.tableWrapperName());
 		let tbodys = wrapper.getElementsByTagName("tbody")[0];
 		let rows = tbodys.getElementsByTagName('tr');
