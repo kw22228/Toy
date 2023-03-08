@@ -1,5 +1,11 @@
 @import url("./reset.css");
 
+.news_node {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
 .mini_player {
   position: fixed;
   bottom: 0;

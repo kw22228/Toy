@@ -3,7 +3,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const webpack = require("webpack");
 
 module.exports = {
-  mode: "production",
+  mode: "development",
 
   entry: "./src/index.js",
 
@@ -29,6 +29,8 @@ module.exports = {
     alias: {
       "@": path.resolve(__dirname, "src"),
       "@core": path.resolve(__dirname, "src/core"),
+      "@class": path.resolve(__dirname, "src/class"),
+      "@utils": path.resolve(__dirname, "src/utils"),
     },
   },
 
