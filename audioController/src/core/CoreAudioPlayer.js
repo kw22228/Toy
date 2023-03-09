@@ -3,33 +3,33 @@ export default class CoreAudioPlayer {
   #audio;
   #progressbar;
   #progress;
-  #progress_point;
-  #timeStart;
-  #timeEnd;
-  #button;
-  #image;
 
-  IS_PLAY = false;
-  playStartTime = null;
+  #isPlay = false;
+  #isDragging = false;
+  #playStartTime = null;
+  #newProgressPercent = 0;
 
   constructor($customPlayer) {
     this.#progressbar = $customPlayer.querySelector(".mini_player_seekbar");
     this.#progress = $customPlayer.querySelector(".player_play");
-    this.#progress_point = $customPlayer.querySelector(".player_point");
+
+    this.#progressbar.addEventListener("dragstart", (e) => this.dragStart(e));
+    this.#progressbar.addEventListener("drag", (e) => this.drag(e));
+    this.#progressbar.addEventListener("dragend", (e) => this.dragEnd(e));
   }
 
   setNode($targetNode) {
     if (this.#targetNode === $targetNode) {
       // 다시 재생
 
-      if (this.IS_PLAY) {
+      if (this.#isPlay) {
         this.#audio.pause();
-        this.IS_PLAY = false;
+        this.#isPlay = false;
         return;
       }
 
       this.#audio.play();
-      this.IS_PLAY = true;
+      this.#isPlay = true;
       return;
     }
 
@@ -38,20 +38,20 @@ export default class CoreAudioPlayer {
   }
 
   changeAudio($targetNode) {
-    if (this.IS_PLAY) {
+    if (this.#isPlay) {
       this.stop();
-      this.IS_PLAY = false;
+      this.#isPlay = false;
     }
 
     this.#audio = this.#targetNode.querySelector("audio");
     this.#audio.addEventListener("timeupdate", this.updateProgress.bind(this));
     this.play();
-    this.IS_PLAY = true;
+    this.#isPlay = true;
   }
 
   play() {
     this.#audio.play();
-    this.playStartTime = Date.now();
+    this.#playStartTime = Date.now();
     this.updateProgress();
   }
 
@@ -67,9 +67,41 @@ export default class CoreAudioPlayer {
 
   updateProgress() {
     const { currentTime, duration } = this.#audio;
-    const elapsedTime = Date.now() - this.playStartTime;
+    const elapsedTime = Date.now() - this.#playStartTime;
     const progressPercent = (elapsedTime / (duration * 1000)) * 100;
 
     this.#progress.style.width = `${progressPercent}%`;
+  }
+
+  dragStart({ clientX }) {
+    if (this.#isPlay) this.puase();
+    this.#isDragging = true;
+  }
+
+  drag({ clientX }) {
+    if (this.#isDragging) {
+      const progressBarWidth = this.#progressbar.offsetWidth;
+      const deltaX = clientX;
+      const newProgressPercent = (deltaX / progressBarWidth) * 100;
+
+      if (newProgressPercent > 100) {
+        this.#progress.style.width = "100%";
+      } else if (newProgressPercent < 0) {
+        this.#progress.style.width = "0%";
+      } else {
+        this.#progress.style.width = `${newProgressPercent}%`;
+      }
+
+      this.#newProgressPercent = newProgressPercent;
+    }
+  }
+
+  dragEnd({ clientX }) {
+    if (this.#isDragging) {
+      this.#audio.currentTime =
+        (this.#newProgressPercent * this.#audio.duration) / 100;
+    }
+
+    this.#isDragging = false;
   }
 }
