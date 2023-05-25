@@ -74,6 +74,7 @@ export default class CoreAudioPlayer {
   }
 
   dragStart({ clientX }) {
+    console.log("start");
     if (this.#isPlay) this.puase();
     this.#isDragging = true;
   }
@@ -97,6 +98,7 @@ export default class CoreAudioPlayer {
   }
 
   dragEnd({ clientX }) {
+    console.log("end");
     if (this.#isDragging) {
       this.#audio.currentTime =
         (this.#newProgressPercent * this.#audio.duration) / 100;
