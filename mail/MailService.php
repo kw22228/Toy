@@ -7,15 +7,16 @@
 
 namespace common\mail;
 
-// use common\mail\sub\CardPaymentInformation;
-// use common\mail\sub\FinalInformation;
-// use common\mail\sub\FindPassword;
 
 use common\dataSet\ResponseResult;
+use common\mail\compositions\CommonTemplate;
 use common\mail\interfaces\ITemplateData;
 use common\mail\sub\MemberRegistConfirmation;
 use common\mail\sub\MemberRegistInformation;
 use common\mail\sub\DepositInformation;
+use common\mail\sub\FinalInformation;
+use common\mail\sub\CardPaymentInformation;
+use common\mail\sub\FindPassword;
 use common\util\Constant;
 use common\util\Util;
 
@@ -24,13 +25,18 @@ abstract class MailService
     protected const WKF_SENDMAIL_PATH = 'https://mkpost.mk.co.kr/wkf/new/send.php';
     private string $lang = Constant::KOREA;
     private string $emailAddress = '';
+    private string $emailTitle = '';
     private array $props;
     private ResponseResult|null $data = null;
+    private CommonTemplate $commonTemplate;
     private ITemplateData $iTemplateData;
 
-    protected function __construct(ITemplateData $iTemplateData)
+    protected function __construct(ITemplateData $iTemplateData, string $emailTitle)
     {
-        $this->setITemplateData($iTemplateData);
+        $this
+            ->setCommonTemplate(new CommonTemplate())
+            ->setITemplateData($iTemplateData)
+            ->setEmailTitle($emailTitle);
     }
 
     /** SubClass Factory */
@@ -43,17 +49,17 @@ abstract class MailService
             case Constant::MEMBER_REGIST_CONFIRMATION:
                 return new MemberRegistConfirmation();
 
-                // case Constant::FIND_PASSWORD:
-                //     return new FindPassword();
+            case Constant::FIND_PASSWORD:
+                return new FindPassword();
 
             case Constant::DEPOSIT_INFORMATION:
                 return new DepositInformation();
 
-                // case Constant::CARD_PAYMENT_INFORMATION:
-                //     return new CardPaymentInformation();
+            case Constant::CARD_PAYMENT_INFORMATION:
+                return new CardPaymentInformation();
 
-                // case Constant::FINAL_INFORMATION:
-                //     return new FinalInformation();
+            case Constant::FINAL_INFORMATION:
+                return new FinalInformation();
 
             default:
                 throw new \ErrorException('Cannot instantiate abstract class.');
@@ -80,6 +86,16 @@ abstract class MailService
     protected function getEmailAddress(): string
     {
         return $this->emailAddress;
+    }
+
+    protected function setEmailTitle(string $emailTitle): self
+    {
+        $this->emailTitle = $emailTitle;
+        return $this;
+    }
+    protected function getEmailTitle(): string
+    {
+        return $this->emailTitle;
     }
 
     public function setProps(array $props): self
@@ -111,6 +127,16 @@ abstract class MailService
     {
         return $this->iTemplateData;
     }
+
+    protected function setCommonTemplate(CommonTemplate $commonTemplate): self
+    {
+        $this->commonTemplate = $commonTemplate;
+        return $this;
+    }
+    protected function getCommonTemplate(): CommonTemplate
+    {
+        return $this->commonTemplate;
+    }
     /** Getter/Setter END */
 
     /** Helper */
@@ -119,6 +145,7 @@ abstract class MailService
         if (empty($this->getData())) $this->setTemplateData();
 
         return [
+            'emailTitle' => $this->getEmailTitle() ?? '',
             'emailAddress' => $this->getEmailAddress() ?? '',
             'template' => $this->getHtmlTemplate()
         ];

@@ -4,13 +4,14 @@ namespace common\mail\sub;
 
 use common\mail\compositions\ChargeTemplateData;
 use common\mail\MailService;
+use common\util\Constant;
 
 /** 회원가입 안내 메일 */
 class MemberRegistInformation extends MailService
 {
     public function __construct()
     {
-        parent::__construct(new ChargeTemplateData());
+        parent::__construct(new ChargeTemplateData(), Constant::MEMBER_REGIST_INFORMATION);
     }
 
     protected function renderMailTemplateWithData(): string
@@ -77,26 +78,11 @@ class MemberRegistInformation extends MailService
                                                                         세계지식포럼 <span style='font-size:20px;color:#333333;font-weight:600;'>참가신청</span>이 확인되었습니다.
                                                                     </td>
                                                                 </tr>
-                                                                <tr>
-                                                                    <td style='font-size: 0; line-height: 0;' height='15'>&nbsp;
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='font-size: 0; line-height: 0;' height='15'>&nbsp;
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='font-size: 0; line-height: 0;border-bottom:1px solid #d8d8d8;' height='15'>&nbsp;
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='font-size: 0; line-height: 0;' height='10'>&nbsp;
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td style='font-size: 0; line-height: 0;' height='15'>&nbsp;
-                                                                    </td>
-                                                                </tr>
+                                                                {$this->getCommonTemplate()->dropLines()}
+                                                                {$this->getCommonTemplate()->dropLines()}
+                                                                {$this->getCommonTemplate()->drawLines()}
+                                                                {$this->getCommonTemplate()->dropLines(10)}
+                                                                {$this->getCommonTemplate()->dropLines()}
                                                                 <tr>
                                                                     <td style='font-size:15px;font-weight:600;text-align:center;vertical-align:middle;display:flex;justify-content:center;align-items:center;'>
                                                                         <span style='color:#dc1c4d;'>&#10686;</span>&nbsp;<span>아래 참가자 개별 링크를 통해 회원가입 후 서비스를 이용하실 수 있습니다.</span>
@@ -105,23 +91,14 @@ class MemberRegistInformation extends MailService
                                                             </table>
                                                         </td>
                                                     </tr>
-                                                    <tr>
-                                                        <td style='font-size: 0; line-height: 0;' height='35'>&nbsp;
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style='font-size: 0; line-height: 0;' height='15'>&nbsp;
-                                                        </td>
-                                                    </tr>
+                                                    {$this->getCommonTemplate()->drawLines(35)}
+                                                    {$this->getCommonTemplate()->dropLines()}
                                                     <tr>
                                                         <td style='font-size:20px;font-weight:600;color:#dc1c4d;'>
                                                             참가자 정보
                                                         </td>
                                                     </tr>
-                                                    <tr>
-                                                        <td style='font-size: 0; line-height: 0;' height='10'>&nbsp;
-                                                        </td>
-                                                    </tr>
+                                                    {$this->getCommonTemplate()->drawLines(10)}
                                                     <tr>
                                                         <td>
                                                             <table align='center' bgcolor='#e0e0e0' border='0' cellpadding='12' cellspacing='0' style='width:100%;border-bottom:1px solid #d8d8d8;'>
@@ -139,20 +116,11 @@ class MemberRegistInformation extends MailService
                                                             </ul>
                                                         </td>
                                                     </tr>
-                                                    <tr>
-                                                        <td style='font-size: 0; line-height: 0;' height='30'>&nbsp;
-                                                        </td>
-                                                    </tr>
+                                                    {$this->getCommonTemplate()->drawLines(30)}
                                                 </table>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <td align='center'>
-                                                <img src='https://file.mk.co.kr/wkforum/img/footer_kor.png'  usemap='#link' alt='' width='850' height='194' style='display:block;'>
-                                                <map name='link'>
-                                                    <area shape='rect' coords='276,104,569,145' target='_blank' href='https://wkforum.org' style='outline:0;'></map>
-                                            </td>
-                                        </tr>
+                                        {$this->getCommonTemplate()->getFooterTemplate()}
                                     </table>
                                 </td>
                             </tr>
