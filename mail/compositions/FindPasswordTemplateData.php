@@ -14,6 +14,8 @@ class FindPasswordTemplateData implements ITemplateData
             'user_id' => $user_id,
             'user_name' => $user_name,
             'authCode' => $authCode,
+            'name_en_given' => $name_en_given,
+            'name_en_family' => $name_en_family,
             'email' => $email,
         ] = $props;
 
@@ -22,7 +24,9 @@ class FindPasswordTemplateData implements ITemplateData
         $responseResult->setMsg(Constant::SUCCESS);
         $responseResult->setData([
             'user_id' => $user_id,
-            'user_name' => $user_name,
+            'user_name' => $user_name ?? '',
+            'name_en_given' => $name_en_given ?? '',
+            'name_en_family' => $name_en_family ?? '',
             'authCode' => $authCode
         ]);
 

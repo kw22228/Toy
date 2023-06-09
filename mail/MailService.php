@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Author: kjw
+ * Author: kjw (추후 완전한 모듈로 전환. 현재 결합도 높음.)
  * Date: 20230523
  */
 
 namespace common\mail;
 
-
 use common\dataSet\ResponseResult;
 use common\mail\compositions\CommonTemplate;
 use common\mail\interfaces\ITemplateData;
+use common\mail\sub\AgendaMail;
 use common\mail\sub\MemberRegistConfirmation;
 use common\mail\sub\MemberRegistInformation;
 use common\mail\sub\DepositInformation;
@@ -19,24 +19,35 @@ use common\mail\sub\CardPaymentInformation;
 use common\mail\sub\FindPassword;
 use common\util\Constant;
 use common\util\Util;
+use ErrorException;
 
 abstract class MailService
 {
+    /** Static instance */
     protected const WKF_SENDMAIL_PATH = 'https://mkpost.mk.co.kr/wkf/new/send.php';
+    protected const SENDER = [
+        Constant::KOREA => '세계지식포럼',
+        Constant::ENGLISH => 'WKForum'
+    ];
+
+    /** Instance */
     private string $lang = Constant::KOREA;
     private string $emailAddress = '';
-    private string $emailTitle = '';
+    private array $referenceEmailAddress = [];
+    private int $emailNo = 0;
     private array $props;
+
+    /** Composition instance */
     private ResponseResult|null $data = null;
     private CommonTemplate $commonTemplate;
     private ITemplateData $iTemplateData;
 
-    protected function __construct(ITemplateData $iTemplateData, string $emailTitle)
+    protected function __construct(ITemplateData $iTemplateData, int $emailNo)
     {
         $this
             ->setCommonTemplate(new CommonTemplate())
             ->setITemplateData($iTemplateData)
-            ->setEmailTitle($emailTitle);
+            ->setEmailNo($emailNo);
     }
 
     /** SubClass Factory */
@@ -61,8 +72,13 @@ abstract class MailService
             case Constant::FINAL_INFORMATION:
                 return new FinalInformation();
 
+            case Constant::PRE_AGENDA_MAIL:
+            case Constant::FINAL_AGENDA_MAIL:
+            case Constant::ONLINE_FINAL_AGENDA_MAIL:
+                return new AgendaMail($type);
+
             default:
-                throw new \ErrorException('Cannot instantiate abstract class.');
+                throw new ErrorException('Cannot instantiate abstract class.');
         }
     }
     /** SubClass Factory END */
@@ -88,14 +104,24 @@ abstract class MailService
         return $this->emailAddress;
     }
 
-    protected function setEmailTitle(string $emailTitle): self
+    protected function setReferenceEmailAddress(array $referenceEmailAddress): self
     {
-        $this->emailTitle = $emailTitle;
+        $this->referenceEmailAddress = $referenceEmailAddress;
         return $this;
     }
-    protected function getEmailTitle(): string
+    protected function getReferenceEmailAddress(): array
     {
-        return $this->emailTitle;
+        return $this->referenceEmailAddress;
+    }
+
+    protected function setEmailNo(int $emailNo): self
+    {
+        $this->emailNo = $emailNo;
+        return $this;
+    }
+    protected function getEmailNo(): int
+    {
+        return $this->emailNo;
     }
 
     public function setProps(array $props): self
@@ -140,13 +166,42 @@ abstract class MailService
     /** Getter/Setter END */
 
     /** Helper */
+    protected function getEmailTitle(): string
+    {
+        switch ($this->getEmailNo()) {
+            case Constant::FINAL_INFORMATION:
+                return $this->getLang() === Constant::ENGLISH ? 'Registration Confirmation' : '세계지식포럼 최종 등록완료 안내';
+            case Constant::DEPOSIT_INFORMATION:
+                return $this->getLang() === Constant::ENGLISH ? 'Registration Notification' : '세계지식포럼 등록신청 확인 안내';
+            case Constant::CARD_PAYMENT_INFORMATION:
+                return '세계지식포럼 등록 결제 안내';
+            case Constant::MEMBER_REGIST_CONFIRMATION:
+                return $this->getLang() === Constant::ENGLISH ? 'Member registration completion guide' : '회원가입 완료 안내';
+            case Constant::MEMBER_REGIST_INFORMATION:
+                return $this->getLang() === Constant::ENGLISH ? 'Participant Guide' : '세계지식포럼 회원가입 안내';
+            case Constant::FIND_PASSWORD:
+                return $this->getlang() === Constant::ENGLISH ? 'Password Finding Security Code' : '비밀번호 찾기 인증번호';
+            case Constant::PRE_AGENDA_MAIL:
+                return 'Pre Agenda';
+            case Constant::FINAL_AGENDA_MAIL:
+                return 'Final Agenda';
+            case Constant::ONLINE_FINAL_AGENDA_MAIL:
+                return 'Online Final Agenda';
+            default:
+                return '';
+        }
+    }
     protected function makePostData(): array
     {
         if (empty($this->getData())) $this->setTemplateData();
+        if (empty($this->getEmailAddress())) throw new ErrorException('The email address to send does not exist.', -201);
+        if (empty($this->getHtmlTemplate())) throw new ErrorException('The mail template to send does not exist.', -202);
 
         return [
-            'emailTitle' => $this->getEmailTitle() ?? '',
+            'sender' => self::SENDER[$this->getLang()],
+            'emailTitle' => $this->getEmailTitle(),
             'emailAddress' => $this->getEmailAddress() ?? '',
+            'referenceEmailAddress' => $this->getReferenceEmailAddress(),
             'template' => $this->getHtmlTemplate()
         ];
     }
@@ -156,12 +211,14 @@ abstract class MailService
     abstract protected function renderMailTemplateWithData(): string;
     /** Abstract End */
 
-    protected function setTemplateData()
+    protected function setTemplateData(): self|ErrorException
     {
-        if (empty($this->getITemplateData()) || empty($this->getProps())) return $this;
+        if (empty($this->getITemplateData()) || empty($this->getProps()))
+            throw new ErrorException('Props is not initialized.', -205);
 
         @[
             'emailAddress' => $emailAddress,
+            'referenceEmailAddress' => $referenceEmailAddress,
             'resultData' => $resultData
         ] = $this
             ->getITemplateData()
@@ -173,10 +230,14 @@ abstract class MailService
                 ->setData($resultData);
         }
 
+        if (!empty($referenceEmailAddress)) {
+            $this->setReferenceEmailAddress($referenceEmailAddress);
+        }
+
         return $this;
     }
 
-    protected function getHtmlTemplate()
+    protected function getHtmlTemplate(): string
     {
         return "
         <!DOCTYPE html>
@@ -197,13 +258,10 @@ abstract class MailService
     }
     public function sendMail()
     {
-        var_dump($this->makePostData());
-        // $res = Util::useCurl_new(
-        //     self::WKF_SENDMAIL_PATH,
-        //     ['Content-Type: application/json'],
-        //     json_encode($this->makePostData())
-        // );
-
-        // var_dump($res);
+        return Util::useCurl_new(
+            self::WKF_SENDMAIL_PATH,
+            ['Content-Type: application/json'],
+            json_encode($this->makePostData())
+        );
     }
 }

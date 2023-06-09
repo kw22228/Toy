@@ -1,10 +1,16 @@
 <?php
 
+/**
+ * Author: kjw
+ * Date: 20230523
+ */
+
 namespace common\mail\sub;
 
 use common\mail\compositions\ChargeTemplateData;
 use common\mail\MailService;
 use common\util\Constant;
+use common\util\Util;
 
 class CardPaymentInformation extends MailService
 {
@@ -13,6 +19,14 @@ class CardPaymentInformation extends MailService
         parent::__construct(new ChargeTemplateData(), Constant::CARD_PAYMENT_INFORMATION);
     }
 
+    public function setLang(string $lang): self
+    {
+        if ($lang === Constant::ENGLISH)
+            throw new \ErrorException('카드결제안내 메일은 영문으로 보낼 수 없습니다.', -200);
+
+        parent::setLang($lang);
+        return $this;
+    }
     protected function renderMailTemplateWithData(): string
     {
         if (empty($this->getData())) $this->setTemplateData();

@@ -7,6 +7,7 @@
 
 namespace common\mail\sub;
 
+use common\dataSet\Member\MemberInfo;
 use common\mail\compositions\MemberTemplateData;
 use common\mail\MailService;
 use common\service\MemberService;
@@ -25,6 +26,11 @@ class MemberRegistConfirmation extends MailService
         if (empty($this->getData())) $this->setTemplateData();
 
         $member = $this->getData()->getData()[0];
+        return $this->getLang() === Constant::ENGLISH ? $this->getEngTemplate($member) : $this->getKorTemplate($member);
+    }
+
+    protected function getKorTemplate(MemberInfo $member): string
+    {
         return "
         <body style='margin: 0; padding: 0;'>
             <table border='0' cellpadding='0' cellspacing='0' width='100%' >
@@ -132,5 +138,93 @@ class MemberRegistConfirmation extends MailService
                 </tr>
             </table>
         </body>";
+    }
+
+    protected function getEngTemplate(MemberInfo $member): string
+    {
+        return "
+        <body style='margin: 0; padding: 0;'>
+        <table border='0' cellpadding='0' cellspacing='0' width='100%' >
+            <tr>
+                <td>
+                    <table align='center' border='0' cellpadding='0' cellspacing='0' width='850' style='border-collapse: collapse;'>
+                        <tr>
+                            <td>
+                                <table align='center' border='0' cellpadding='0' cellspacing='0' width='850'>
+                                    <tr>
+                                        <td align='center' bgcolor='#70bbd9'>
+                                            <img src='https://file.mk.co.kr/wkforum/img/top_18.png' alt='' width='850' height='221' style='display:block;'>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding:80px 80px 40px 80px'>
+                                            <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+                                                <tr>
+                                                    <td bgcolor='#f7f7f7' style='padding:60px 30px 20px 30px'>
+                                                        <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+                                                            <tr>
+                                                                <td style='padding:0 35px 0 35px;font-size:30px;font-weight:600;color:#dc1c4d;font-family:\'Arial\';'>
+                                                                    Dear {$member->getName_en_given()} {$member->getName_en_family()}
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style='padding:10px 35px 0 35px;font-size:20px;font-weight:500;'>
+                                                                    <span style='font-size:18px;color:#333333;font-weight:300;font-family:\'Arial\';'>
+                                                                        Thank you for your interest in the World Knowledge Forum.
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                            {$this->getCommonTemplate()->dropLines()}
+                                                            {$this->getCommonTemplate()->dropLines()}
+                                                            {$this->getCommonTemplate()->dropLines(35)}
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                {$this->getCommonTemplate()->dropLines(35)}
+                                                {$this->getCommonTemplate()->dropLines()}
+                                                <tr>
+                                                    <td style='font-size:20px;font-weight:600;color:#dc1c4d;font-family:\'Arial\';'>Personal Information</td>
+                                                </tr>
+                                                {$this->getCommonTemplate()->dropLines(10)}
+                                                <tr>
+                                                    <td>
+                                                        <table align='center' bgcolor='#e0e0e0' border='0' cellpadding='12' cellspacing='0' style='width:100%'>
+                                                            <tbody>
+                                                            <tr>
+                                                                <td align='center' bgcolor='#f5f5f5' style='width:35%;border-top:2px solid #363636;'><span style='font-family:\'Arial\';font-size:15px;font-weight:500;color:#333333;'>Given Name</span></td>
+                                                                <td align='center' bgcolor='#FFFFFF' style='width:65%;border-top:2px solid #363636;text-align:left;'><span style='font-family:\'Arial\';font-size:15px;font-weight:600;color:#333333;margin-left:15px;'>{$member->getName_en_given()}</span></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align='center' bgcolor='#f5f5f5' style='width:35%;border-top:1px solid #d8d8d8;'><span style='font-family:\'Arial\';font-size:15px;font-weight:500;color:#333333;'>Family Name</span></td>
+                                                                <td align='center' bgcolor='#FFFFFF' style='width:65%;border-top:1px solid #d8d8d8;text-align:left;'><span style='font-family:\'Arial\';font-size:15px;font-weight:600;color:#333333;margin-left:15px;'>{$member->getName_en_family()}</span></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align='center' bgcolor='#f5f5f5' style='width:35%;border-top:1px solid #d8d8d8;'><span style='font-family:\'Arial\';font-size:15px;font-weight:500;color:#333333;'>Organization/Institution</span></td>
+                                                                <td align='center' bgcolor='#FFFFFF' style='width:65%;border-top:1px solid #d8d8d8;text-align:left;'><span style='font-family:\'Arial\';font-size:15px;font-weight:600;color:#333333;margin-left:15px;'>{$member->getCompany_en()}</span></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align='center' bgcolor='#f5f5f5' style='width:35%;border-top:1px solid #d8d8d8;border-bottom:1px solid #d8d8d8;'><span style='font-family:\'Arial\';font-size:15px;font-weight:500;color:#333333;'>ID(e-mail)</span></td>
+                                                                <td align='center' bgcolor='#FFFFFF' style='width:65%;border-top:1px solid #d8d8d8;border-bottom:1px solid #d8d8d8;text-align:left;'><span style='font-family:\'Arial\';font-size:15px;font-weight:600;color:#333333;margin-left:15px;'>{$member->getUser_id()}</span></td>
+                                                            </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                {$this->getCommonTemplate()->dropLines(35)}
+                                                {$this->getCommonTemplate()->dropLines()}
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    {$this->getCommonTemplate()->getFooterTemplate($this->getLang())}
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+        </body>
+        ";
     }
 }

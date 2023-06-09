@@ -1,7 +1,14 @@
 <?php
 
+/**
+ * Author: kjw
+ * Date: 20230523
+ */
+
 namespace common\mail\sub;
 
+use common\dataSet\Registration\ForumChargeInfo;
+use common\dataSet\Registration\ForumGroupInfo;
 use common\mail\compositions\ChargeTemplateData;
 use common\mail\MailService;
 use common\service\Registration;
@@ -24,10 +31,17 @@ class FinalInformation extends MailService
     {
         $registration = $this->getData()->getData();
         $charge = $registration['charge'][0];
-        $members = $registration['member_list'];
+        $members = $registration['member_list'] ?? $registration['registry'];
 
+        return $this->getLang() === Constant::ENGLISH
+            ? $this->getEngChargeTemplate($charge, $members)
+            : $this->getKorChargeTemplate($charge, $members);
+    }
+
+    protected function getKorChargeTemplate(ForumChargeInfo $charge, array $members): string
+    {
         $membersHtml = join("", array_map(function ($index, $memberData) use ($members) {
-            $member = $memberData[0];
+            $member = $memberData instanceof ForumGroupInfo ? $memberData : $memberData[0];
             $border = $index === 0 ? "border-top:2px solid #363636;" : "border-top:1px solid #d8d8d8;";
             $border_bottom = (count($members) - 1) === $index ? 'border-bottom:1px solid #d8d8d8;' : '';
 
@@ -105,17 +119,17 @@ class FinalInformation extends MailService
                                                     {$this->getCommonTemplate()->dropLines(35)}
                                                     {$this->getCommonTemplate()->dropLines()}
                                                     
-                                                    {$this->getCommonTemplate()->getChargeTemplate($charge)} <!-- 담당자 정보 ->
+                                                    {$this->getCommonTemplate()->getChargeTemplate($charge)} 
 
                                                     {$this->getCommonTemplate()->dropLines(35)}
                                                     {$this->getCommonTemplate()->dropLines()}
                                                     
-                                                    {$this->getCommonTemplate()->getPayTemplate($charge,$members,$this->getLang(), true)} <!-- 결제 정보 ->
+                                                    {$this->getCommonTemplate()->getPayTemplate($charge,$members, true)} 
 
                                                     {$this->getCommonTemplate()->dropLines(30)}
                                                     {$this->getCommonTemplate()->dropLines(5)}
                                                     
-                                                    {$this->getCommonTemplate()->getRefundTemplate()} <!-- 환불 및 취소 정책 ->
+                                                    {$this->getCommonTemplate()->getRefundTemplate()} 
 
                                                     {$this->getCommonTemplate()->dropLines(35)}
                                                     {$this->getCommonTemplate()->dropLines()}
@@ -132,5 +146,89 @@ class FinalInformation extends MailService
             </table>
         </body>
         ";
+    }
+
+    protected function getEngChargeTemplate(ForumChargeInfo $charge, array $members): string
+    {
+        $member = $members[0][0];
+
+        return "
+        <body style='margin: 0; padding: 0;'>
+        <table border='0' cellpadding='0' cellspacing='0' width='100%' >
+            <tr>
+                <td>
+                    <table align='center' border='0' cellpadding='0' cellspacing='0' width='850' style='border-collapse: collapse;'>
+                        <tr>
+                            <td>
+                                <table align='center' border='0' cellpadding='0' cellspacing='0' width='850'>
+                                    <tr>
+                                        <td align='center' bgcolor='#70bbd9'>
+                                            <img src='https://file.mk.co.kr/wkforum/img/top_14.png' alt='' width='850' height='221' style='display:block;'>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding:80px 80px 40px 80px'>
+                                            <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+                                                <tr>
+                                                    <td bgcolor='#f7f7f7' style='padding:60px 30px 20px 30px'>
+                                                        <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+                                                            <tr>
+                                                                <td style='padding:0 35px 0 35px;font-size:30px;font-weight:600;color:#dc1c4d;font-family:\'Arial\';'>
+                                                                    Dear {$member->getEng_first_name()} {$member->getEng_last_name()}
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style='padding:10px 35px 0 35px;font-size:20px;font-weight:500;'><span style='font-size:18px;color:#333333;font-weight:300;font-family:\'Arial\';'>Thank you for your interest in the World Knowledge Forum.</span>
+                                                                </td>
+                                                            </tr>
+                                                            {$this->getCommonTemplate()->dropLines()}
+                                                            {$this->getCommonTemplate()->dropLines()}
+                                                            {$this->getCommonTemplate()->drawLines()}
+                                                            {$this->getCommonTemplate()->dropLines(10)}
+                                                            {$this->getCommonTemplate()->dropLines()}
+                                                            <tr>
+                                                                <td style='font-size:15px;font-weight:600;text-align:center;vertical-align:middle;display:flex;justify-content:center;align-items:center;font-family:\'Arial\';'>
+                                                                    <span style='color:#dc1c4d;'>&#10686;</span>&nbsp;<span>Your payment has been confirmed.</span>
+                                                                </td>
+                                                            </tr>
+                                                            {$this->getCommonTemplate()->dropLines(35)}
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                                {$this->getCommonTemplate()->dropLines(35)}
+                                                {$this->getCommonTemplate()->dropLines()}
+                                                
+                                                {$this->getCommonTemplate()->getEngChargeTemplate($member)}
+
+                                                {$this->getCommonTemplate()->dropLines(35)}
+                                                {$this->getCommonTemplate()->dropLines()}
+
+                                                {$this->getCommonTemplate()->getEngPayTemplate($charge,$member)}
+
+                                                {$this->getCommonTemplate()->dropLines(25)}
+
+                                                {$this->getCommonTemplate()->getEngRegistrationConfirmTemplate()}
+
+                                                {$this->getCommonTemplate()->dropLines(30)}
+                                                {$this->getCommonTemplate()->dropLines(5)}
+                                                
+                                                {$this->getCommonTemplate()->getRefundTemplate($this->getlang())}
+
+                                                {$this->getCommonTemplate()->dropLines(35)}
+                                                {$this->getCommonTemplate()->dropLines()}
+                                            </table>
+                                        </td>
+                                    </tr>
+
+                                    {$this->getCommonTemplate()->getFooterTemplate($this->getLang())}
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+        </body>";
     }
 }
